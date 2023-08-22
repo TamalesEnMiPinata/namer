@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -100,6 +101,8 @@ class NamerConfig:
     * 'name' - the scene name
     * 'site' - the site name, BrazzersExxtra, AllHerLuv, Deeper, etc with spaces removed.
     * 'full_site' - the site name from porndb, unmodified, i.e: Brazzers Exxtra, All Her Luv, etc.
+    * 'parent' - the parent site/studio name from porndb, unmodified, i.e: Brazzers, etc.
+    * 'full_parent' - the parent full site/studio name from porndb, unmodified, i.e: Brazzers, Vixen, etc.
     * 'network' - the network site or studio name, MindGeek, Vixen, etc with spaces removed.
     * 'full_network' - the network full site/studio name from porndb, unmodified, i.e: Mind Geek, Vixen, etc.
     * 'performers' - comma seperated list of female performers
@@ -231,7 +234,17 @@ class NamerConfig:
     a set of tags that indicates an individual video is vr.
     """
 
-    enabled_requests_cache: bool = True
+    database_path: Path = Path(tempfile.gettempdir()) / 'namer'
+    """
+    Path where stores namer system data.
+    """
+
+    use_database: bool = False
+    """
+    Use namer database.
+    """
+
+    use_requests_cache: bool = True
     """
     Cache http requests
     """
@@ -408,9 +421,9 @@ class NamerConfig:
     Add maximal percent from failed log to table in web interface
     """
 
-    cache_session: Optional[CachedSession]
+    cache_session: Optional[CachedSession] = None
     """
-    If enabled_requests_cache is true this http.session will be constructed and used for requests to tpdb.
+    If use_requests_cache is true this http.session will be constructed and used for requests to tpdb.
     """
 
     debug: bool = False
@@ -482,7 +495,9 @@ class NamerConfig:
                 "set_uid": self.set_uid,
                 "set_gid": self.set_gid,
                 "max_performer_names": self.max_performer_names,
-                "enabled_requests_cache": self.enabled_requests_cache,
+                "use_database": self.use_database,
+                "database_path": str(self.database_path),
+                "use_requests_cache": self.use_requests_cache,
                 "requests_cache_expire_minutes": self.requests_cache_expire_minutes,
                 "override_tpdb_address": self.override_tpdb_address,
                 "plex_hack": self.plex_hack,

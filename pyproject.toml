@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "namer"
-version = "1.13.3"
+version = "1.14.1"
 description = "A namer of video files based on metadata from the porndb."
 readme = "readme.rst"
 authors = ["4c0d3r <4c0d3r@protonmail.com>"]
@@ -27,14 +27,14 @@ jsonpickle = "^3.0.1"
 ConfigUpdater = "^3.1.1"
 imagehash = "^4.3.1"
 oshash = "^0.1.1"
+pony = "^0.7.16"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"
 pytest-cov = "^4.0.0"
 coverage = "^7.0.0"
 flakeheaven = "^3.0.0"
-selenium = "^4.2.0"
-webdriver-manager = "^3.7.0"
+selenium = "^4.6.0"
 assertpy = "^1.1"
 poethepoet = "^0.18.0"
 flake8-simplify = "^0.19.3"
@@ -72,6 +72,12 @@ test_namer = {shell="poetry run pytest --log-cli-level=info --capture=no"}
 test = ["test_format", "test_namer"]
 build_all = ["build_deps", "test", "build_namer"]
 
+[tool.poetry.build]
+generate-setup-file = true
+
+[tool.poetry.scripts]
+namer = "namer.__main__:main"
+
 [build-system]
-requires = ["poetry-core>=1.2.0"]
+requires = ["poetry-core>=1.6.0"]
 build-backend = "poetry.core.masonry.api"

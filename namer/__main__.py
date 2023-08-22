@@ -11,17 +11,19 @@ porndb for a match to be considered.  If the log file flag is enabled then a <or
 file will be written with all the potential matches sorted, descending by how closely the scene name/performer names
 match the file.
 """
-import pathlib
 import sys
-from typing import List
+from datetime import timedelta
+from pathlib import Path
 
 from loguru import logger
+from requests_cache import CachedSession
 
 import namer.metadataapi
 import namer.namer
 import namer.watchdog
 import namer.web
 from namer.configuration_utils import default_config
+from namer.models import db
 
 DESCRIPTION = (
     namer.namer.DESCRIPTION + """
@@ -40,17 +42,30 @@ def create_default_config_if_missing():
     """
     Find or create config.
     """
-    config_file = pathlib.Path(".namer.conf")
+    config_file = Path(".namer.conf")
     print("Creating default config file here: {}", config_file)
     print("please edit the token or any other settings whose defaults you want changed.")
 
 
-def main(arg_list: List[str]):
+def main():
     """
     Call main method in namer.namer or namer.watchdog.
     """
     logger.remove()
     config = default_config()
+
+    arg_list = sys.argv[1:]
+
+    # create a CachedSession objects for request caching.
+    if config.use_requests_cache:
+        cache_file = config.database_path / 'namer_cache'
+        expire_time = timedelta(minutes=config.requests_cache_expire_minutes)
+        config.cache_session = CachedSession(str(cache_file), backend='sqlite', expire_after=expire_time, ignored_parameters=['Authorization'])
+
+    if config.use_database:
+        db_file = config.database_path / 'namer_database.sqlite'
+        db.bind(provider='sqlite', filename=str(db_file), create_db=True)
+        db.generate_mapping(create_tables=True)
 
     arg1 = None if len(arg_list) == 0 else arg_list[0]
     if arg1 == "watchdog":
@@ -64,6 +79,9 @@ def main(arg_list: List[str]):
     elif arg1 in ["-h", "help", None]:
         print(DESCRIPTION)
 
+    if config.use_requests_cache and config.cache_session:
+        config.cache_session.cache.delete(expired=True)
+
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
